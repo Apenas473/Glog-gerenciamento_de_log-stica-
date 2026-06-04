@@ -28,6 +28,10 @@ export interface Transporte {
 interface Store {
   role: UserRole;
   setRole: (r: UserRole) => void;
+  isLoggedIn: boolean;
+  homePath: string;
+  login: (email: string, senha: string) => { ok: boolean; path?: string };
+  logout: () => void;
   transportes: Transporte[];
   motoristas: Motorista[];
   addTransporte: (t: Omit<Transporte, "id" | "status" | "codigo_seguranca" | "motorista_id" | "criado_em">) => Transporte;
@@ -41,6 +45,28 @@ const StoreCtx = createContext<Store | null>(null);
 
 const genId = () => Math.random().toString(36).slice(2, 10);
 const genCodigo = () => Math.random().toString(36).slice(2, 8).toLowerCase();
+
+const loginAccounts: Record<string, { role: UserRole; path: string; password: string }> = {
+  cliente: { role: "cliente", path: "/dashboard", password: "1234" },
+  transportadora: { role: "transportadora", path: "/transportes", password: "1234" },
+  transporte: { role: "transportadora", path: "/transportes", password: "1234" },
+  motorista: { role: "motorista", path: "/motoristas", password: "1234" },
+  amazon: { role: "cliente", path: "/dashboard", password: "1234" },
+  cdserra: { role: "empresa", path: "/validacao", password: "1234" },
+};
+
+const getDefaultPathForRole = (role: UserRole) => {
+  switch (role) {
+    case "cliente":
+      return "/dashboard";
+    case "transportadora":
+      return "/transportes";
+    case "motorista":
+      return "/motoristas";
+    case "empresa":
+      return "/dashboard";
+  }
+};
 
 const initialMotoristas: Motorista[] = [
   { id: "m1", nome: "João Silva", telefone: "(11) 98888-1111", modelo_caminhao: "Volvo FH 540", placa: "ABC-1D23" },
@@ -71,17 +97,64 @@ const initialTransportes: Transporte[] = [
 
 export function StoreProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("cliente");
+  const [homePath, setHomePath] = useState<string>(getDefaultPathForRole("cliente"));
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [transportes, setTransportes] = useState<Transporte[]>(initialTransportes);
   const [motoristas, setMotoristas] = useState<Motorista[]>(initialMotoristas);
 
   useEffect(() => {
-    const saved = localStorage.getItem("logix:role");
-    if (saved) setRoleState(saved as UserRole);
+    const savedRole = localStorage.getItem("logix:role");
+    const savedAuth = localStorage.getItem("logix:auth");
+    const savedHomePath = localStorage.getItem("logix:homePath");
+    if (savedRole) setRoleState(savedRole as UserRole);
+    if (savedAuth === "1") setIsLoggedIn(true);
+    if (savedHomePath) setHomePath(savedHomePath);
   }, []);
 
   const setRole = (r: UserRole) => {
     setRoleState(r);
     localStorage.setItem("logix:role", r);
+    const defaultPath = getDefaultPathForRole(r);
+    setHomePath(defaultPath);
+    localStorage.setItem("logix:homePath", defaultPath);
+  };
+
+  const login = (email: string, senha: string) => {
+    const normalized = email.trim().toLowerCase();
+    const key = normalized.split("@")[0];
+    const account = loginAccounts[normalized] ?? loginAccounts[key];
+
+    if (account && senha === account.password) {
+      setIsLoggedIn(true);
+      setRoleState(account.role);
+      setHomePath(account.path);
+      localStorage.setItem("logix:auth", "1");
+      localStorage.setItem("logix:role", account.role);
+      localStorage.setItem("logix:homePath", account.path);
+      return { ok: true, path: account.path };
+    }
+
+    if (normalized.includes("@") && senha.length >= 4) {
+      const defaultPath = getDefaultPathForRole("cliente");
+      setIsLoggedIn(true);
+      setRoleState("cliente");
+      setHomePath(defaultPath);
+      localStorage.setItem("logix:auth", "1");
+      localStorage.setItem("logix:role", "cliente");
+      localStorage.setItem("logix:homePath", defaultPath);
+      return { ok: true, path: defaultPath };
+    }
+
+    return { ok: false };
+  };
+
+  const logout = () => {
+    setIsLoggedIn(false);
+    setRoleState("cliente");
+    setHomePath(getDefaultPathForRole("cliente"));
+    localStorage.removeItem("logix:auth");
+    localStorage.removeItem("logix:role");
+    localStorage.removeItem("logix:homePath");
   };
 
   const addTransporte: Store["addTransporte"] = (t) => {
@@ -123,7 +196,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <StoreCtx.Provider value={{ role, setRole, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, removeMotorista, validarEntrega }}>
+    <StoreCtx.Provider value={{ role, setRole, isLoggedIn, homePath, login, logout, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, removeMotorista, validarEntrega }}>
       {children}
     </StoreCtx.Provider>
   );

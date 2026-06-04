@@ -1,5 +1,5 @@
-import { Link, useRouterState } from "@tanstack/react-router";
-import { LayoutDashboard, PackagePlus, Truck, Users, ShieldCheck, LogOut, Boxes } from "lucide-react";
+import { Link, useRouterState, useNavigate } from "@tanstack/react-router";
+import { LayoutDashboard, PackagePlus, Truck, Users, ShieldCheck, LogOut, Boxes, UserCircle } from "lucide-react";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarHeader, SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter,
@@ -20,7 +20,8 @@ const items: NavItem[] = [
 export function AppSidebar() {
   const { state } = useSidebar();
   const collapsed = state === "collapsed";
-  const { role, setRole } = useStore();
+  const { role, logout } = useStore();
+  const navigate = useNavigate();
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const visible = items.filter((i) => i.roles.includes(role));
 
@@ -63,17 +64,26 @@ export function AppSidebar() {
       <SidebarFooter className="border-t">
         {!collapsed && (
           <div className="px-2 py-2">
-            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Logado como</p>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground mb-1.5">Perfil atual</p>
             <p className="text-sm font-semibold">{roleLabel[role]}</p>
           </div>
         )}
         <SidebarMenu>
           <SidebarMenuItem>
             <SidebarMenuButton asChild>
-              <Link to="/login" onClick={() => setRole(role)}>
-                <LogOut className="h-4 w-4" />
+              <Link to="/perfil">
+                <UserCircle className="h-4 w-4" />
                 <span>Trocar perfil</span>
               </Link>
+            </SidebarMenuButton>
+          </SidebarMenuItem>
+          <SidebarMenuItem>
+            <SidebarMenuButton
+              onClick={() => { logout(); navigate({ to: "/login" }); }}
+              className="cursor-pointer"
+            >
+              <LogOut className="h-4 w-4" />
+              <span>Sair</span>
             </SidebarMenuButton>
           </SidebarMenuItem>
         </SidebarMenu>
