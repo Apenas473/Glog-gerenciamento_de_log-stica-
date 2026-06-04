@@ -14,7 +14,9 @@ export type UserRole =
 
 export type StatusCarga =
   | "em_espera"
-  | "recebida"
+  | "coletada"
+  | "em_transito"
+  | "proxima_entrega"
   | "entregue";
 
 export interface Motorista {
@@ -34,39 +36,37 @@ export interface Motorista {
   capacidade_carga: string;
 }
 
-/* =========================
-   TRANSPORTE (ATUALIZADO)
-========================= */
 export interface Transporte {
   id: string;
 
   empresa: string;
 
-  // coleta
   endereco: string;
   responsavel_coleta?: string;
   telefone_coleta?: string;
   data_coleta?: string;
 
-  // entrega
   local_entrega?: string;
   responsavel_entrega?: string;
   telefone_entrega?: string;
   data_entrega?: string;
 
-  // carga
   carga: string;
   quantidade?: string;
   peso: string;
   volume: string;
+
   tipo_embalagem?: string;
   informacao_adicional?: string;
 
   observacoes: string;
 
   status: StatusCarga;
+
   codigo_seguranca: string;
+
   motorista_id: string | null;
+
   criado_em: string;
 }
 
@@ -93,150 +93,399 @@ interface Store {
     motoristaId: string
   ) => void;
 
-  addMotorista: (m: Omit<Motorista, "id">) => Motorista;
+  atualizarStatus: (
+    transporteId: string,
+    status: StatusCarga
+  ) => void;
 
-  updateMotorista: (id: string, dados: Omit<Motorista, "id">) => void;
+  validarEntrega: (
+    transporteId: string,
+    codigo: string
+  ) => boolean;
 
-  removeMotorista: (id: string) => void;
+  addMotorista: (
+    motorista: Omit<Motorista, "id">
+  ) => Motorista;
 
-  validarEntrega: (transporteId: string, codigo: string) => boolean;
+  updateMotorista: (
+    id: string,
+    dados: Omit<Motorista, "id">
+  ) => void;
+
+  removeMotorista: (
+    id: string
+  ) => void;
 }
 
 const StoreCtx = createContext<Store | null>(null);
 
-const genId = () => Math.random().toString(36).slice(2, 10);
-const genCodigo = () => Math.random().toString(36).slice(2, 8).toLowerCase();
+const genId = () =>
+  Math.random()
+    .toString(36)
+    .slice(2, 10);
 
-/* =========================
-   DADOS INICIAIS
-========================= */
+const genCodigo = () => {
+  const chars =
+    "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+
+  return Array.from(
+    { length: 8 },
+    () =>
+      chars[
+        Math.floor(
+          Math.random() *
+            chars.length
+        )
+      ]
+  ).join("");
+};
 
 const initialMotoristas: Motorista[] = [
   {
     id: "m1",
     nome: "João Silva",
-    telefone: "(11) 98888-1111",
+    telefone:
+      "(11) 98888-1111",
+
     cpf: "",
     cnh: "",
     categoria_cnh: "",
-    marca_caminhao: "Volvo",
-    modelo_caminhao: "FH 540",
-    tipo_caminhao: "Trator",
+
+    marca_caminhao:
+      "Volvo",
+
+    modelo_caminhao:
+      "FH 540",
+
+    tipo_caminhao:
+      "Trator",
+
     ano_veiculo: "",
+
     placa: "ABC-1D23",
-    capacidade_carga: "",
+
+    capacidade_carga:
+      "30 toneladas",
   },
 ];
 
 const initialTransportes: Transporte[] = [
   {
     id: "t1",
-    empresa: "Supermercados Alfa",
-    endereco: "Av. Paulista, 1500 - São Paulo/SP",
 
-    carga: "Alimentos perecíveis",
+    empresa:
+      "Supermercados Alfa",
+
+    endereco:
+      "Av. Paulista, 1500 - São Paulo/SP",
+
+    carga:
+      "Alimentos Perecíveis",
+
+    quantidade: "120",
+
     peso: "1200kg",
-    volume: "8m³",
-    observacoes: "Refrigerado",
 
-    status: "em_espera",
-    codigo_seguranca: "1wef05",
+    volume: "8m³",
+
+    tipo_embalagem:
+      "Palete",
+
+    informacao_adicional:
+      "Refrigerado",
+
+    observacoes:
+      "Manter refrigerado",
+
+    status:
+      "em_espera",
+
+    codigo_seguranca:
+      "ABC12345",
+
     motorista_id: null,
-    criado_em: new Date().toISOString(),
+
+    criado_em:
+      new Date().toISOString(),
   },
 ];
 
-/* =========================
-   PROVIDER
-========================= */
+export function StoreProvider({
+  children,
+}: {
+  children: ReactNode;
+}) {
+  const [role, setRoleState] =
+    useState<UserRole>(
+      "cliente"
+    );
 
-export function StoreProvider({ children }: { children: ReactNode }) {
-  const [role, setRoleState] = useState<UserRole>("cliente");
-  const [transportes, setTransportes] = useState<Transporte[]>(initialTransportes);
-  const [motoristas, setMotoristas] = useState<Motorista[]>(initialMotoristas);
+  const [
+    transportes,
+    setTransportes,
+  ] = useState<
+    Transporte[]
+  >([]);
+
+  const [
+    motoristas,
+    setMotoristas,
+  ] = useState<
+    Motorista[]
+  >([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem("logix:role");
-    if (saved) setRoleState(saved as UserRole);
-  }, []);
-
-  const setRole = (r: UserRole) => {
-    setRoleState(r);
-    localStorage.setItem("logix:role", r);
-  };
-
-  const addTransporte: Store["addTransporte"] = (t) => {
-    const novo: Transporte = {
-      ...t,
-      id: genId(),
-      status: "em_espera",
-      codigo_seguranca: genCodigo(),
-      motorista_id: null,
-      criado_em: new Date().toISOString(),
-    };
-
-    setTransportes((prev) => [novo, ...prev]);
-    return novo;
-  };
-
-  const atribuirMotorista = (transporteId: string, motoristaId: string) => {
-    setTransportes((prev) =>
-      prev.map((t) =>
-        t.id === transporteId
-          ? { ...t, motorista_id: motoristaId, status: "recebida" }
-          : t
-      )
-    );
-  };
-
-  const addMotorista = (m: Omit<Motorista, "id">) => {
-    const novo: Motorista = { ...m, id: genId() };
-    setMotoristas((prev) => [...prev, novo]);
-    return novo;
-  };
-
-  const updateMotorista = (id: string, dados: Omit<Motorista, "id">) => {
-    setMotoristas((prev) =>
-      prev.map((m) => (m.id === id ? { ...m, ...dados } : m))
-    );
-  };
-
-  const removeMotorista = (id: string) => {
-    setMotoristas((prev) => prev.filter((m) => m.id !== id));
-  };
-
-  const validarEntrega = (transporteId: string, codigo: string) => {
-    const transporte = transportes.find((t) => t.id === transporteId);
-    if (!transporte) return false;
-
-    if (
-      transporte.codigo_seguranca.toLowerCase() ===
-      codigo.trim().toLowerCase()
-    ) {
-      setTransportes((prev) =>
-        prev.map((t) =>
-          t.id === transporteId ? { ...t, status: "entregue" } : t
-        )
+    const savedRole =
+      localStorage.getItem(
+        "logix:role"
       );
-      return true;
+
+    if (savedRole) {
+      setRoleState(
+        savedRole as UserRole
+      );
     }
 
-    return false;
+    const savedTransportes =
+      localStorage.getItem(
+        "logix:transportes"
+      );
+
+    const savedMotoristas =
+      localStorage.getItem(
+        "logix:motoristas"
+      );
+
+    if (savedTransportes) {
+      setTransportes(
+        JSON.parse(
+          savedTransportes
+        )
+      );
+    } else {
+      setTransportes(
+        initialTransportes
+      );
+    }
+
+    if (savedMotoristas) {
+      setMotoristas(
+        JSON.parse(
+          savedMotoristas
+        )
+      );
+    } else {
+      setMotoristas(
+        initialMotoristas
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "logix:transportes",
+      JSON.stringify(
+        transportes
+      )
+    );
+  }, [transportes]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "logix:motoristas",
+      JSON.stringify(
+        motoristas
+      )
+    );
+  }, [motoristas]);
+
+  const setRole = (
+    r: UserRole
+  ) => {
+    setRoleState(r);
+
+    localStorage.setItem(
+      "logix:role",
+      r
+    );
   };
+
+  const addTransporte: Store["addTransporte"] =
+    (dados) => {
+      const novo: Transporte =
+        {
+          ...dados,
+
+          id: genId(),
+
+          status:
+            "em_espera",
+
+          codigo_seguranca:
+            genCodigo(),
+
+          motorista_id:
+            null,
+
+          criado_em:
+            new Date().toISOString(),
+        };
+
+      setTransportes(
+        (prev) => [
+          novo,
+          ...prev,
+        ]
+      );
+
+      return novo;
+    };
+
+  const atribuirMotorista =
+    (
+      transporteId: string,
+      motoristaId: string
+    ) => {
+      setTransportes(
+        (prev) =>
+          prev.map((t) =>
+            t.id ===
+            transporteId
+              ? {
+                  ...t,
+                  motorista_id:
+                    motoristaId,
+                  status:
+                    "coletada",
+                }
+              : t
+          )
+      );
+    };
+
+  const atualizarStatus =
+    (
+      transporteId: string,
+      status: StatusCarga
+    ) => {
+      setTransportes(
+        (prev) =>
+          prev.map((t) =>
+            t.id ===
+            transporteId
+              ? {
+                  ...t,
+                  status,
+                }
+              : t
+          )
+      );
+    };
+
+  const validarEntrega =
+    (
+      transporteId: string,
+      codigo: string
+    ) => {
+      const transporte =
+        transportes.find(
+          (t) =>
+            t.id ===
+            transporteId
+        );
+
+      if (!transporte)
+        return false;
+
+      if (
+        transporte.codigo_seguranca.toUpperCase() !==
+        codigo
+          .trim()
+          .toUpperCase()
+      ) {
+        return false;
+      }
+
+      setTransportes(
+        (prev) =>
+          prev.map((t) =>
+            t.id ===
+            transporteId
+              ? {
+                  ...t,
+                  status:
+                    "entregue",
+                }
+              : t
+          )
+      );
+
+      return true;
+    };
+
+  const addMotorista =
+    (
+      motorista: Omit<
+        Motorista,
+        "id"
+      >
+    ) => {
+      const novo = {
+        ...motorista,
+        id: genId(),
+      };
+
+      setMotoristas(
+        (prev) => [
+          ...prev,
+          novo,
+        ]
+      );
+
+      return novo;
+    };
+
+ const updateMotorista: Store["updateMotorista"] = (id, dados) => {
+  setMotoristas((prev) =>
+    prev.map((m) =>
+      m.id === id
+        ? {
+            ...m,
+            ...dados,
+          }
+        : m
+    )
+  );
+};
+
+ const removeMotorista: Store["removeMotorista"] = (id) => {
+  setMotoristas((prev) =>
+    prev.filter((m) => m.id !== id)
+  );
+};
 
   return (
     <StoreCtx.Provider
       value={{
         role,
         setRole,
+
         transportes,
         motoristas,
+
         addTransporte,
+
         atribuirMotorista,
-        addMotorista,
-        updateMotorista,
-        removeMotorista,
+
+        atualizarStatus,
+
         validarEntrega,
+
+        addMotorista,
+
+        updateMotorista,
+
+        removeMotorista,
       }}
     >
       {children}
@@ -244,29 +493,52 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   );
 }
 
-/* =========================
-   HOOK
-========================= */
-
 export function useStore() {
-  const ctx = useContext(StoreCtx);
-  if (!ctx) throw new Error("useStore must be used inside StoreProvider");
+  const ctx =
+    useContext(StoreCtx);
+
+  if (!ctx) {
+    throw new Error(
+      "useStore must be used inside StoreProvider"
+    );
+  }
+
   return ctx;
 }
 
-/* =========================
-   LABELS
-========================= */
+export const statusLabel: Record<
+  StatusCarga,
+  string
+> = {
+  em_espera:
+    "Em Espera",
 
-export const statusLabel: Record<StatusCarga, string> = {
-  em_espera: "Em Espera",
-  recebida: "Recebida",
-  entregue: "Entregue",
+  coletada:
+    "Coletada",
+
+  em_transito:
+    "Em Trânsito",
+
+  proxima_entrega:
+    "Próxima Entrega",
+
+  entregue:
+    "Entregue",
 };
 
-export const roleLabel: Record<UserRole, string> = {
-  cliente: "Cliente",
-  transportadora: "Transportadora",
-  empresa: "Empresa Recebedora",
-  motorista: "Motorista",
+export const roleLabel: Record<
+  UserRole,
+  string
+> = {
+  cliente:
+    "Cliente",
+
+  transportadora:
+    "Transportadora",
+
+  empresa:
+    "Empresa Recebedora",
+
+  motorista:
+    "Motorista",
 };
