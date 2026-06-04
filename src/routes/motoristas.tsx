@@ -164,6 +164,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Digite o nome"
                     value={form.nome}
                     onChange={(e) =>
                       setForm({
@@ -181,6 +182,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Digite o telefone"
                     value={
                       form.telefone
                     }
@@ -200,6 +202,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Digite o CPF"
                     value={form.cpf}
                     onChange={(e) =>
                       setForm({
@@ -217,6 +220,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Digite a CNH"
                     value={form.cnh}
                     onChange={(e) =>
                       setForm({
@@ -233,7 +237,7 @@ function Motoristas() {
                     Categoria *
                   </Label>
 
-                  <Input
+                  <Input placeholder="Digite a categoria"
                     value={
                       form.categoria_cnh
                     }
@@ -253,6 +257,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Digite a placa"
                     value={form.placa}
                     onChange={(e) =>
                       setForm({
@@ -270,6 +275,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Volvo, Scania, Mercedes-Benz"
                     value={
                       form.marca_caminhao
                     }
@@ -289,6 +295,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                  placeholder="Digite o modelo"
                     value={
                       form.modelo_caminhao
                     }
@@ -308,6 +315,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                   placeholder="Toco, Truck, Carreta"
                     value={
                       form.tipo_caminhao
                     }
@@ -327,6 +335,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                  placeholder="Digite o ano"
                     type="number"
                     value={
                       form.ano_veiculo
@@ -347,6 +356,7 @@ function Motoristas() {
                   </Label>
 
                   <Input
+                  placeholder="Digite o imite maximo"
                     value={
                       form.capacidade_carga
                     }

@@ -30,6 +30,7 @@ const initialForm = {
   responsavel_coleta: "",
   telefone_coleta: "",
   endereco: "",
+  cep: "",
   data_coleta: "",
 
   local_entrega: "",
@@ -222,6 +223,7 @@ function Solicitar() {
               </Label>
 
               <Input
+              placeholder="Nome da empresa"
                 value={form.empresa}
                 onChange={(e) =>
                   update(
@@ -238,6 +240,7 @@ function Solicitar() {
               </Label>
 
               <Input
+              placeholder="Digite o endereço"
                 value={form.endereco}
                 onChange={(e) =>
                   update(
@@ -247,6 +250,24 @@ function Solicitar() {
                 }
               />
             </div>
+            
+            <div>
+              <Label>
+                CEP *
+              </Label>
+
+              <Input
+              placeholder="Digite o CEP"
+                value={form.cep}
+                onChange={(e) =>
+                  update(
+                    "cep",
+                    e.target.value
+                  )
+                }
+              />
+            </div>
+
           </div>
         </Card>
 
