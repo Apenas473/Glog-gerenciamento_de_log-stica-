@@ -34,7 +34,7 @@ export function AppSidebar() {
           </div>
           {!collapsed && (
             <div className="flex flex-col">
-              <span className="text-sm font-bold tracking-tight">LogiX</span>
+              <span className="text-sm font-bold tracking-tight">G-Log</span>
               <span className="text-[10px] text-muted-foreground uppercase tracking-wider">Gestão de Transporte</span>
             </div>
           )}

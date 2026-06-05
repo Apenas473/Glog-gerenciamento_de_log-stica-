@@ -46,7 +46,7 @@ function LoginPage() {
           <div className="inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-primary text-primary-foreground mb-5 shadow-lg">
             <Boxes className="h-8 w-8" />
           </div>
-          <h1 className="text-3xl font-bold tracking-tight">LogiX</h1>
+          <h1 className="text-3xl font-bold tracking-tight">G-Log</h1>
           <p className="text-muted-foreground mt-2">Gestão Inteligente de Transporte e Entregas</p>
         </div>
 
