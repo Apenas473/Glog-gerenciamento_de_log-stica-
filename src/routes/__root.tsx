@@ -1,12 +1,12 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import {
-  Outlet, Link, createRootRouteWithContext, useRouter, useNavigate,
+  Outlet, Link, createRootRouteWithContext, useRouter,
   HeadContent, Scripts, useRouterState,
 } from "@tanstack/react-router";
 import appCss from "../styles.css?url";
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { StoreProvider, useStore } from "@/lib/store";
+import { StoreProvider } from "@/lib/store";
 import { Toaster } from "@/components/ui/sonner";
 
 function NotFoundComponent() {
@@ -74,14 +74,7 @@ function RootShell({ children }: { children: React.ReactNode }) {
 
 function AppShell() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { isLoggedIn } = useStore();
-  const navigate = useNavigate();
-  const isAuth = pathname === "/login" || pathname === "/" || pathname === "/perfil";
-
-  if (!isLoggedIn && !isAuth) {
-    navigate({ to: "/login" });
-    return null;
-  }
+  const isAuth = pathname === "/login" || pathname === "/";
 
   if (isAuth) return <Outlet />;
 
