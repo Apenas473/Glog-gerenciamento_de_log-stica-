@@ -3,11 +3,19 @@ import { createContext, useContext, useEffect, useState, ReactNode } from "react
 export type UserRole = "cliente" | "transportadora" | "empresa" | "motorista";
 export type StatusCarga = "em_espera" | "recebida" | "entregue";
 
+// Atualizado para incluir todos os campos que seu formulário utiliza
 export interface Motorista {
   id: string;
   nome: string;
   telefone: string;
+  cpf: string;
+  cnh: string;
+  categoria_cnh: string;
+  marca_caminhao: string;
   modelo_caminhao: string;
+  tipo_caminhao: string;
+  ano_veiculo: string;
+  capacidade_carga: string;
   placa: string;
 }
 
@@ -37,6 +45,7 @@ interface Store {
   addTransporte: (t: Omit<Transporte, "id" | "status" | "codigo_seguranca" | "motorista_id" | "criado_em">) => Transporte;
   atribuirMotorista: (transporteId: string, motoristaId: string) => void;
   addMotorista: (m: Omit<Motorista, "id">) => Motorista;
+  updateMotorista: (id: string, m: Omit<Motorista, "id">) => void; // <-- ADICIONADO NA INTERFACE
   removeMotorista: (id: string) => void;
   validarEntrega: (transporteId: string, codigo: string) => boolean;
 }
@@ -68,10 +77,20 @@ const getDefaultPathForRole = (role: UserRole) => {
   }
 };
 
+// Inicializadores atualizados com os novos campos padrão para evitar erros de renderização
 const initialMotoristas: Motorista[] = [
-  { id: "m1", nome: "João Silva", telefone: "(11) 98888-1111", modelo_caminhao: "Volvo FH 540", placa: "ABC-1D23" },
-  { id: "m2", nome: "Carlos Souza", telefone: "(11) 97777-2222", modelo_caminhao: "Scania R450", placa: "XYZ-2E45" },
-  { id: "m3", nome: "Roberto Lima", telefone: "(11) 96666-3333", modelo_caminhao: "Mercedes Actros", placa: "DEF-3G67" },
+  { 
+    id: "m1", nome: "João Silva", telefone: "(11) 98888-1111", cpf: "111.111.111-11", 
+    cnh: "123456789", categoria_cnh: "E", marca_caminhao: "Volvo", 
+    modelo_caminhao: "FH 540", tipo_caminhao: "Carreta", ano_veiculo: "2021", 
+    capacidade_carga: "40T", placa: "ABC-1D23" 
+  },
+  { 
+    id: "m2", nome: "Carlos Souza", telefone: "(11) 97777-2222", cpf: "222.222.222-22", 
+    cnh: "987654321", categoria_cnh: "D", marca_caminhao: "Scania", 
+    modelo_caminhao: "R450", tipo_caminhao: "Truck", ano_veiculo: "2019", 
+    capacidade_carga: "23T", placa: "XYZ-2E45" 
+  },
 ];
 
 const initialTransportes: Transporte[] = [
@@ -86,12 +105,6 @@ const initialTransportes: Transporte[] = [
     carga: "Material de construção", peso: "3500kg", volume: "12m³", observacoes: "",
     status: "recebida", codigo_seguranca: "9ab2x4", motorista_id: "m1",
     criado_em: new Date(Date.now() - 172800000).toISOString(),
-  },
-  {
-    id: "t3", empresa: "Farmácia Gama", endereco: "Rua Saúde, 88 - Santos/SP",
-    carga: "Medicamentos", peso: "300kg", volume: "2m³", observacoes: "Frágil",
-    status: "entregue", codigo_seguranca: "40d53e", motorista_id: "m2",
-    criado_em: new Date(Date.now() - 259200000).toISOString(),
   },
 ];
 
@@ -179,6 +192,13 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     return novo;
   };
 
+  // ADICIONADA A IMPLEMENTAÇÃO DO UPDATEMOTORISTA
+  const updateMotorista: Store["updateMotorista"] = (id, dadosAtualizados) => {
+    setMotoristas((prev) =>
+      prev.map((m) => (m.id === id ? { ...m, ...dadosAtualizados } : m))
+    );
+  };
+
   const removeMotorista: Store["removeMotorista"] = (id) => {
     setMotoristas((prev) => prev.filter((m) => m.id !== id));
   };
@@ -196,7 +216,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <StoreCtx.Provider value={{ role, setRole, isLoggedIn, homePath, login, logout, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, removeMotorista, validarEntrega }}>
+    <StoreCtx.Provider value={{ role, setRole, isLoggedIn, homePath, login, logout, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, updateMotorista, removeMotorista, validarEntrega }}>
       {children}
     </StoreCtx.Provider>
   );
