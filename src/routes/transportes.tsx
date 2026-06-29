@@ -110,7 +110,7 @@ function Transportes() {
     transportes.filter(
       (t) =>
         t.status ===
-        "em_transito"
+        "recebida"
     ).length;
 
   return (

@@ -20,63 +20,17 @@ function Dashboard() {
 
   const total = transportes.length;
 
-  const emEspera = transportes.filter(
-    (t) => t.status === "em_espera"
-  ).length;
-
-  const coletadas = transportes.filter(
-    (t) => t.status === "coletada"
-  ).length;
-
-  const emTransito = transportes.filter(
-    (t) => t.status === "em_transito"
-  ).length;
-
-  const proximasEntregas = transportes.filter(
-    (t) => t.status === "proxima_entrega"
-  ).length;
-
-  const entregues = transportes.filter(
-    (t) => t.status === "entregue"
-  ).length;
+  const emEspera = transportes.filter((t) => t.status === "em_espera").length;
+  const atribuidas = transportes.filter((t) => t.status === "atribuida").length;
+  const recebidas = transportes.filter((t) => t.status === "recebida").length;
+  const entregues = transportes.filter((t) => t.status === "entregue").length;
 
   const stats = [
-    {
-      label: "Total",
-      value: total,
-      icon: Package,
-      color: "bg-primary/10 text-primary",
-    },
-    {
-      label: "Em Espera",
-      value: emEspera,
-      icon: Clock,
-      color: "bg-red-100 text-red-600",
-    },
-    {
-      label: "Coletadas",
-      value: coletadas,
-      icon: Truck,
-      color: "bg-yellow-100 text-yellow-600",
-    },
-    {
-      label: "Em Trânsito",
-      value: emTransito,
-      icon: Truck,
-      color: "bg-blue-100 text-blue-600",
-    },
-    {
-      label: "Próx. Entrega",
-      value: proximasEntregas,
-      icon: Truck,
-      color: "bg-purple-100 text-purple-600",
-    },
-    {
-      label: "Entregues",
-      value: entregues,
-      icon: CheckCircle2,
-      color: "bg-green-100 text-green-600",
-    },
+    { label: "Total", value: total, icon: Package, color: "bg-primary/10 text-primary" },
+    { label: "Em Espera", value: emEspera, icon: Clock, color: "bg-red-100 text-red-600" },
+    { label: "Atribuídas", value: atribuidas, icon: Truck, color: "bg-yellow-100 text-yellow-600" },
+    { label: "Recebidas", value: recebidas, icon: Truck, color: "bg-blue-100 text-blue-600" },
+    { label: "Entregues", value: entregues, icon: CheckCircle2, color: "bg-green-100 text-green-600" },
   ];
 
   const recentes = [...transportes]
@@ -100,7 +54,7 @@ function Dashboard() {
         </p>
 
         <h2 className="text-3xl font-bold tracking-tight">
-          Dashboard Logístico
+          Painel de Acompanhamento
         </h2>
       </div>
 
@@ -147,11 +101,7 @@ function Dashboard() {
 
             <div className="flex justify-between">
               <span>Em Operação</span>
-              <span className="font-bold">
-                {coletadas +
-                  emTransito +
-                  proximasEntregas}
-              </span>
+              <span className="font-bold">{atribuidas + recebidas}</span>
             </div>
 
             <div className="flex justify-between">

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
 export type UserRole = "cliente" | "transportadora" | "empresa" | "motorista";
-export type StatusCarga = "em_espera" | "recebida" | "entregue";
+export type StatusCarga = "em_espera" | "atribuida" | "recebida" | "entregue";
 
 export interface Motorista {
   id: string;
@@ -29,6 +29,7 @@ interface Store {
   role: UserRole;
   setRole: (r: UserRole) => void;
   isLoggedIn: boolean;
+  isLoadingAuth: boolean;
   homePath: string;
   login: (email: string, senha: string) => { ok: boolean; path?: string };
   logout: () => void;
@@ -38,6 +39,7 @@ interface Store {
   atribuirMotorista: (transporteId: string, motoristaId: string) => void;
   addMotorista: (m: Omit<Motorista, "id">) => Motorista;
   removeMotorista: (id: string) => void;
+  confirmarRetiradaMotorista: (transporteId: string, codigo: string) => boolean;
   validarEntrega: (transporteId: string, codigo: string) => boolean;
 }
 
@@ -50,7 +52,7 @@ const loginAccounts: Record<string, { role: UserRole; path: string; password: st
   cliente: { role: "cliente", path: "/dashboard", password: "1234" },
   transportadora: { role: "transportadora", path: "/transportes", password: "1234" },
   transporte: { role: "transportadora", path: "/transportes", password: "1234" },
-  motorista: { role: "motorista", path: "/motoristas", password: "1234" },
+  motorista: { role: "motorista", path: "/transportes", password: "1234" },
   amazon: { role: "cliente", path: "/dashboard", password: "1234" },
   cdserra: { role: "empresa", path: "/validacao", password: "1234" },
 };
@@ -62,7 +64,7 @@ const getDefaultPathForRole = (role: UserRole) => {
     case "transportadora":
       return "/transportes";
     case "motorista":
-      return "/motoristas";
+      return "/transportes";
     case "empresa":
       return "/dashboard";
   }
@@ -99,6 +101,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   const [role, setRoleState] = useState<UserRole>("cliente");
   const [homePath, setHomePath] = useState<string>(getDefaultPathForRole("cliente"));
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
   const [transportes, setTransportes] = useState<Transporte[]>(initialTransportes);
   const [motoristas, setMotoristas] = useState<Motorista[]>(initialMotoristas);
 
@@ -169,8 +172,20 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const atribuirMotorista: Store["atribuirMotorista"] = (transporteId, motoristaId) => {
     setTransportes((prev) =>
-      prev.map((t) => t.id === transporteId ? { ...t, motorista_id: motoristaId, status: "recebida" } : t)
+      prev.map((t) => t.id === transporteId ? { ...t, motorista_id: motoristaId, status: "atribuida" } : t)
     );
+  };
+
+  const confirmarRetiradaMotorista: Store["confirmarRetiradaMotorista"] = (transporteId, codigo) => {
+    const t = transportes.find((x) => x.id === transporteId);
+    if (!t || t.status !== "atribuida") return false;
+    if (t.codigo_seguranca.toLowerCase() === codigo.trim().toLowerCase()) {
+      setTransportes((prev) =>
+        prev.map((x) => x.id === transporteId ? { ...x, status: "recebida" } : x)
+      );
+      return true;
+    }
+    return false;
   };
 
   const addMotorista: Store["addMotorista"] = (m) => {
@@ -185,7 +200,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
 
   const validarEntrega: Store["validarEntrega"] = (transporteId, codigo) => {
     const t = transportes.find((x) => x.id === transporteId);
-    if (!t) return false;
+    if (!t || t.status !== "recebida") return false;
     if (t.codigo_seguranca.toLowerCase() === codigo.trim().toLowerCase()) {
       setTransportes((prev) =>
         prev.map((x) => x.id === transporteId ? { ...x, status: "entregue" } : x)
@@ -196,11 +211,11 @@ export function StoreProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <StoreCtx.Provider value={{ role, setRole, isLoggedIn, homePath, login, logout, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, removeMotorista, validarEntrega }}>
+    <StoreCtx.Provider value={{ role, setRole, isLoggedIn, isLoadingAuth, homePath, login, logout, transportes, motoristas, addTransporte, atribuirMotorista, addMotorista, removeMotorista, confirmarRetiradaMotorista, validarEntrega }}>
       {children}
     </StoreCtx.Provider>
   );
-}
+};
 
 export function useStore() {
   const ctx = useContext(StoreCtx);
@@ -210,6 +225,7 @@ export function useStore() {
 
 export const statusLabel: Record<StatusCarga, string> = {
   em_espera: "Em Espera",
+  atribuida: "Atribuída",
   recebida: "Recebida",
   entregue: "Entregue",
 };
