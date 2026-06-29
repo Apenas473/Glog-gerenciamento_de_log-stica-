@@ -49,7 +49,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "LogiX — Gestão Inteligente de Transporte" },
+      { title: "GLog — Gestão Inteligente de Transporte" },
       { name: "description", content: "Plataforma de gestão de transporte e entregas com código de segurança e atualização automática de status." },
     ],
     links: [{ rel: "stylesheet", href: appCss }],
