@@ -58,16 +58,11 @@ function Motoristas() {
   } = useStore();
 
   const [open, setOpen] = useState(false);
+  const [editando, setEditando] = useState<Motorista | null>(null);
+  const [form, setForm] = useState(emptyForm);
 
-  const [editando, setEditando] =
-    useState<Motorista | null>(null);
-
-  const [form, setForm] =
-    useState(emptyForm);
-
-  const submit = (
-    e: React.FormEvent
-  ) => {
+  // Validação e envio do cadastro
+  const handleCadastroSubmit = (e: React.FormEvent) => {
     e.preventDefault();
 
     if (
@@ -80,9 +75,7 @@ function Motoristas() {
       !form.tipo_caminhao ||
       !form.placa
     ) {
-      toast.error(
-        "Preencha todos os campos obrigatórios."
-      );
+      toast.error("Preencha todos os campos obrigatórios.");
       return;
     }
 
@@ -91,54 +84,76 @@ function Motoristas() {
       telefone: form.telefone,
       cpf: form.cpf,
       cnh: form.cnh,
-      categoria_cnh:
-        form.categoria_cnh,
-      marca_caminhao:
-        form.marca_caminhao,
-      modelo_caminhao:
-        form.modelo_caminhao,
-      tipo_caminhao:
-        form.tipo_caminhao,
-      ano_veiculo:
-        form.ano_veiculo,
-      capacidade_carga:
-        form.capacidade_carga,
-      placa:
-        form.placa.toUpperCase(),
+      categoria_cnh: form.categoria_cnh,
+      marca_caminhao: form.marca_caminhao,
+      modelo_caminhao: form.modelo_caminhao,
+      tipo_caminhao: form.tipo_caminhao,
+      ano_veiculo: form.ano_veiculo,
+      capacidade_carga: form.capacidade_carga,
+      placa: form.placa.toUpperCase(),
     });
 
-    toast.success(
-      "Motorista cadastrado com sucesso."
-    );
-
-    setForm(emptyForm);
+    toast.success("Motorista cadastrado com sucesso.");
+    setForm({ ...emptyForm });
     setOpen(false);
+  };
+
+  // Validação e envio da edição
+  const handleEdicaoSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!editando) return;
+
+    if (
+      !editando.nome ||
+      !editando.cpf ||
+      !editando.cnh ||
+      !editando.categoria_cnh ||
+      !editando.marca_caminhao ||
+      !editando.modelo_caminhao ||
+      !editando.tipo_caminhao ||
+      !editando.placa
+    ) {
+      toast.error("Preencha todos os campos obrigatórios na edição.");
+      return;
+    }
+
+    updateMotorista(editando.id, {
+      nome: editando.nome,
+      telefone: editando.telefone,
+      cpf: editando.cpf,
+      cnh: editando.cnh,
+      categoria_cnh: editando.categoria_cnh,
+      marca_caminhao: editando.marca_caminhao,
+      modelo_caminhao: editando.modelo_caminhao,
+      tipo_caminhao: editando.tipo_caminhao,
+      ano_veiculo: editando.ano_veiculo,
+      capacidade_carga: editando.capacidade_carga,
+      placa: editando.placa.toUpperCase(),
+    });
+
+    toast.success("Motorista atualizado com sucesso.");
+    setEditando(null);
   };
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
+      {/* HEADER E BOTÃO NOVO MOTORISTA */}
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
             <Users className="h-6 w-6" />
           </div>
-
           <div>
-            <h2 className="text-2xl font-bold">
-              Motoristas e Veículos
-            </h2>
-
+            <h2 className="text-2xl font-bold">Motoristas e Veículos</h2>
             <p className="text-sm text-muted-foreground">
-              {motoristas.length} motorista(s)
-              cadastrado(s)
+              {motoristas.length} motorista(s) cadastrado(s)
             </p>
           </div>
         </div>
 
-        <Dialog
-          open={open}
-          onOpenChange={setOpen}
-        >
+        {/* DIALOG DE CADASTRO */}
+        <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="h-4 w-4 mr-2" />
@@ -148,251 +163,149 @@ function Motoristas() {
 
           <DialogContent className="max-h-[90vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>
-                Cadastro de Motorista
-              </DialogTitle>
+              <DialogTitle>Cadastro de Motorista</DialogTitle>
             </DialogHeader>
 
-            <form
-              onSubmit={submit}
-              className="space-y-4"
-            >
+            <form onSubmit={handleCadastroSubmit} className="space-y-4">
               <div className="grid md:grid-cols-2 gap-4">
                 <div>
-                  <Label>
-                    Nome *
-                  </Label>
-
+                  <Label>Nome *</Label>
                   <Input
-                   placeholder="Digite o nome"
+                    placeholder="Digite o nome"
                     value={form.nome}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        nome:
-                          e.target.value,
-                      })
+                      setForm({ ...form, nome: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Telefone
-                  </Label>
-
+                  <Label>Telefone</Label>
                   <Input
-                   placeholder="Digite o telefone"
-                    value={
-                      form.telefone
-                    }
+                    placeholder="Digite o telefone"
+                    value={form.telefone}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        telefone:
-                          e.target.value,
-                      })
+                      setForm({ ...form, telefone: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    CPF *
-                  </Label>
-
+                  <Label>CPF *</Label>
                   <Input
-                   placeholder="Digite o CPF"
+                    placeholder="Digite o CPF"
                     value={form.cpf}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        cpf:
-                          e.target.value,
-                      })
+                      setForm({ ...form, cpf: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    CNH *
-                  </Label>
-
+                  <Label>CNH *</Label>
                   <Input
-                   placeholder="Digite a CNH"
+                    placeholder="Digite a CNH"
                     value={form.cnh}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        cnh:
-                          e.target.value,
-                      })
+                      setForm({ ...form, cnh: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Categoria *
-                  </Label>
-
-                  <Input placeholder="Digite a categoria"
-                    value={
-                      form.categoria_cnh
-                    }
-                    onChange={(e) =>
-                      setForm({
-                        ...form,
-                        categoria_cnh:
-                          e.target.value.toUpperCase(),
-                      })
-                    }
-                  />
-                </div>
-
-                <div>
-                  <Label>
-                    Placa *
-                  </Label>
-
+                  <Label>Categoria *</Label>
                   <Input
-                   placeholder="Digite a placa"
+                    placeholder="Digite a categoria"
+                    value={form.categoria_cnh}
+                    onChange={(e) =>
+                      setForm({ ...form, categoria_cnh: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
+
+                <div>
+                  <Label>Placa *</Label>
+                  <Input
+                    placeholder="Digite a placa"
                     value={form.placa}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        placa:
-                          e.target.value.toUpperCase(),
-                      })
+                      setForm({ ...form, placa: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Marca *
-                  </Label>
-
+                  <Label>Marca *</Label>
                   <Input
-                   placeholder="Volvo, Scania, Mercedes-Benz"
-                    value={
-                      form.marca_caminhao
-                    }
+                    placeholder="Volvo, Scania, Mercedes-Benz"
+                    value={form.marca_caminhao}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        marca_caminhao:
-                          e.target.value,
-                      })
+                      setForm({ ...form, marca_caminhao: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Modelo *
-                  </Label>
-
+                  <Label>Modelo *</Label>
                   <Input
-                  placeholder="Digite o modelo"
-                    value={
-                      form.modelo_caminhao
-                    }
+                    placeholder="Digite o modelo"
+                    value={form.modelo_caminhao}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        modelo_caminhao:
-                          e.target.value,
-                      })
+                      setForm({ ...form, modelo_caminhao: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Tipo *
-                  </Label>
-
+                  <Label>Tipo *</Label>
                   <Input
-                   placeholder="Toco, Truck, Carreta"
-                    value={
-                      form.tipo_caminhao
-                    }
+                    placeholder="Toco, Truck, Carreta"
+                    value={form.tipo_caminhao}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        tipo_caminhao:
-                          e.target.value,
-                      })
+                      setForm({ ...form, tipo_caminhao: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
 
                 <div>
-                  <Label>
-                    Ano
-                  </Label>
-
+                  <Label>Ano</Label>
                   <Input
-                  placeholder="Digite o ano"
+                    placeholder="Digite o ano"
                     type="number"
-                    value={
-                      form.ano_veiculo
-                    }
+                    value={form.ano_veiculo}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        ano_veiculo:
-                          e.target.value,
-                      })
+                      setForm({ ...form, ano_veiculo: e.target.value }) // Removido .toUpperCase()
                     }
                   />
                 </div>
 
                 <div className="md:col-span-2">
-                  <Label>
-                    Capacidade de Carga
-                  </Label>
-
+                  <Label>Capacidade de Carga</Label>
                   <Input
-                  placeholder="Digite o imite maximo"
-                    value={
-                      form.capacidade_carga
-                    }
+                    placeholder="Digite o limite máximo"
+                    value={form.capacidade_carga}
                     onChange={(e) =>
-                      setForm({
-                        ...form,
-                        capacidade_carga:
-                          e.target.value,
-                      })
+                      setForm({ ...form, capacidade_carga: e.target.value.toUpperCase() })
                     }
                   />
                 </div>
               </div>
 
               <DialogFooter>
-                <Button type="submit">
-                  Cadastrar
-                </Button>
+                <Button type="submit">Cadastrar</Button>
               </DialogFooter>
             </form>
           </DialogContent>
         </Dialog>
       </div>
 
+      {/* LISTAGEM DOS MOTORISTAS (CARDS) */}
       <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-5">
         {motoristas.map((m) => (
-          <Card
-            key={m.id}
-            className="p-5 flex flex-col justify-between"
-          >
+          <Card key={m.id} className="p-5 flex flex-col justify-between">
             <div>
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-bold text-lg">
-                  {m.nome}
-                </h3>
-
+                <h3 className="font-bold text-lg">{m.nome}</h3>
                 <span className="px-2 py-1 rounded-full text-xs bg-primary/10 text-primary">
                   CNH {m.categoria_cnh}
                 </span>
@@ -409,39 +322,20 @@ function Motoristas() {
                   CPF: {m.cpf}
                 </p>
 
-                <p>
-                  CNH: {m.cnh}
-                </p>
+                <p>CNH: {m.cnh}</p>
 
                 <p className="flex items-center gap-2">
                   <Truck className="h-4 w-4" />
-                  {m.marca_caminhao}{" "}
-                  {m.modelo_caminhao}
+                  {m.marca_caminhao} {m.modelo_caminhao}
                 </p>
 
-                <p>
-                  Tipo:{" "}
-                  {m.tipo_caminhao}
-                </p>
-
-                <p>
-                  Ano:{" "}
-                  {m.ano_veiculo ||
-                    "-"}
-                </p>
-
-                <p>
-                  Capacidade:{" "}
-                  {m.capacidade_carga ||
-                    "-"}
-                </p>
+                <p>Tipo: {m.tipo_caminhao}</p>
+                <p>Ano: {m.ano_veiculo || "-"}</p>
+                <p>Capacidade: {m.capacidade_carga || "-"}</p>
 
                 <div className="flex items-center gap-2 mt-3">
                   <BadgeCheck className="h-4 w-4 text-green-600" />
-
-                  <span className="font-mono">
-                    {m.placa}
-                  </span>
+                  <span className="font-mono">{m.placa}</span>
                 </div>
               </div>
             </div>
@@ -450,9 +344,7 @@ function Motoristas() {
               <Button
                 variant="outline"
                 className="flex-1"
-                onClick={() =>
-                  setEditando(m)
-                }
+                onClick={() => setEditando(m)}
               >
                 <Pencil className="h-4 w-4 mr-2" />
                 Editar
@@ -461,21 +353,10 @@ function Motoristas() {
               <Button
                 variant="destructive"
                 onClick={() => {
-                  const confirmar =
-                    window.confirm(
-                      `Excluir ${m.nome}?`
-                    );
-
-                  if (!confirmar)
-                    return;
-
-                  removeMotorista(
-                    m.id
-                  );
-
-                  toast.success(
-                    "Motorista removido."
-                  );
+                  const confirmar = window.confirm(`Excluir ${m.nome}?`);
+                  if (!confirmar) return;
+                  removeMotorista(m.id);
+                  toast.success("Motorista removido.");
                 }}
               >
                 <Trash2 className="h-4 w-4" />
@@ -485,150 +366,144 @@ function Motoristas() {
         ))}
       </div>
 
-      <Dialog
-        open={!!editando}
-        onOpenChange={() =>
-          setEditando(null)
-        }
-      >
+      {/* DIALOG DE EDIÇÃO */}
+      <Dialog open={!!editando} onOpenChange={() => setEditando(null)}>
         <DialogContent className="max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>
-              Editar Motorista
-            </DialogTitle>
+            <DialogTitle>Editar Motorista</DialogTitle>
           </DialogHeader>
 
           {editando && (
-            <form
-              className="space-y-3"
-              onSubmit={(e) => {
-                e.preventDefault();
+            <form onSubmit={handleEdicaoSubmit} className="space-y-4">
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <Label>Nome *</Label>
+                  <Input
+                    placeholder="Nome"
+                    value={editando.nome}
+                    onChange={(e) =>
+                      setEditando({ ...editando, nome: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-                updateMotorista(
-                  editando.id,
-                  {
-                    nome:
-                      editando.nome,
-                    telefone:
-                      editando.telefone,
-                    cpf:
-                      editando.cpf,
-                    cnh:
-                      editando.cnh,
-                    categoria_cnh:
-                      editando.categoria_cnh,
-                    marca_caminhao:
-                      editando.marca_caminhao,
-                    modelo_caminhao:
-                      editando.modelo_caminhao,
-                    tipo_caminhao:
-                      editando.tipo_caminhao,
-                    ano_veiculo:
-                      editando.ano_veiculo,
-                    capacidade_carga:
-                      editando.capacidade_carga,
-                    placa:
-                      editando.placa,
-                  }
-                );
+                <div>
+                  <Label>Telefone</Label>
+                  <Input
+                    placeholder="Telefone"
+                    value={editando.telefone}
+                    onChange={(e) =>
+                      setEditando({ ...editando, telefone: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-                toast.success(
-                  "Motorista atualizado."
-                );
+                <div>
+                  <Label>CPF *</Label>
+                  <Input
+                    placeholder="CPF"
+                    value={editando.cpf}
+                    onChange={(e) =>
+                      setEditando({ ...editando, cpf: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-                setEditando(null);
-              }}
-            >
-              <Input
-                placeholder="Nome"
-                value={
-                  editando.nome
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    nome:
-                      e.target.value,
-                  })
-                }
-              />
+                <div>
+                  <Label>CNH *</Label>
+                  <Input
+                    placeholder="CNH"
+                    value={editando.cnh}
+                    onChange={(e) =>
+                      setEditando({ ...editando, cnh: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Input
-                placeholder="Telefone"
-                value={
-                  editando.telefone
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    telefone:
-                      e.target.value,
-                  })
-                }
-              />
+                <div>
+                  <Label>Categoria *</Label>
+                  <Input
+                    placeholder="Categoria"
+                    value={editando.categoria_cnh}
+                    onChange={(e) =>
+                      setEditando({ ...editando, categoria_cnh: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Input
-                placeholder="CPF"
-                value={
-                  editando.cpf
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    cpf:
-                      e.target.value,
-                  })
-                }
-              />
+                <div>
+                  <Label>Placa *</Label>
+                  <Input
+                    placeholder="Placa"
+                    value={editando.placa}
+                    onChange={(e) =>
+                      setEditando({ ...editando, placa: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Input
-                placeholder="CNH"
-                value={
-                  editando.cnh
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    cnh:
-                      e.target.value,
-                  })
-                }
-              />
+                <div>
+                  <Label>Marca do Caminhão *</Label>
+                  <Input
+                    placeholder="Marca do Caminhão"
+                    value={editando.marca_caminhao}
+                    onChange={(e) =>
+                      setEditando({ ...editando, marca_caminhao: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Input
-                placeholder="Categoria"
-                value={
-                  editando.categoria_cnh
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    categoria_cnh:
-                      e.target.value.toUpperCase(),
-                  })
-                }
-              />
+                <div>
+                  <Label>Modelo do Caminhão *</Label>
+                  <Input
+                    placeholder="Modelo do Caminhão"
+                    value={editando.modelo_caminhao}
+                    onChange={(e) =>
+                      setEditando({ ...editando, modelo_caminhao: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Input
-                placeholder="Placa"
-                value={
-                  editando.placa
-                }
-                onChange={(e) =>
-                  setEditando({
-                    ...editando,
-                    placa:
-                      e.target.value.toUpperCase(),
-                  })
-                }
-              />
+                <div>
+                  <Label>Tipo do Caminhão *</Label>
+                  <Input
+                    placeholder="Tipo do Caminhão"
+                    value={editando.tipo_caminhao}
+                    onChange={(e) =>
+                      setEditando({ ...editando, tipo_caminhao: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
 
-              <Button
-                type="submit"
-                className="w-full"
-              >
-                Salvar Alterações
-              </Button>
+                <div>
+                  <Label>Ano do Veículo</Label>
+                  <Input
+                    type="number"
+                    placeholder="Ano do Veículo"
+                    value={editando.ano_veiculo}
+                    onChange={(e) =>
+                      setEditando({ ...editando, ano_veiculo: e.target.value }) // Removido .toUpperCase()
+                    }
+                  />
+                </div>
+
+                <div className="md:col-span-2">
+                  <Label>Capacidade de Carga</Label>
+                  <Input
+                    placeholder="Capacidade de Carga"
+                    value={editando.capacidade_carga}
+                    onChange={(e) =>
+                      setEditando({ ...editando, capacidade_carga: e.target.value.toUpperCase() })
+                    }
+                  />
+                </div>
+              </div>
+
+              <DialogFooter>
+                <Button type="submit" className="w-full">
+                  Salvar Alterações
+                </Button>
+              </DialogFooter>
             </form>
           )}
         </DialogContent>
