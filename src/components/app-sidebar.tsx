@@ -10,10 +10,11 @@ import { useStore, UserRole, roleLabel } from "@/lib/store";
 interface NavItem { title: string; url: string; icon: any; roles: UserRole[]; }
 
 const items: NavItem[] = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard, roles: ["cliente", "transportadora", "empresa", "motorista"] },
+  { title: "Painel de Acompanhamento", url: "/dashboard", icon: LayoutDashboard, roles: ["cliente", "transportadora", "empresa", "motorista"] },
   { title: "Solicitar Transporte", url: "/solicitar", icon: PackagePlus, roles: ["cliente"] },
   { title: "Transportes", url: "/transportes", icon: Truck, roles: ["cliente", "transportadora", "motorista"] },
   { title: "Motoristas", url: "/motoristas", icon: Users, roles: ["transportadora"] },
+   { title: "Confirmar Retirada", url: "/retirada", icon: Truck, roles: ["motorista"] },
   { title: "Validar Entrega", url: "/validacao", icon: ShieldCheck, roles: ["empresa"] },
 ];
 

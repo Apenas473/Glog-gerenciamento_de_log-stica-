@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ValidacaoRouteImport } from './routes/validacao'
 import { Route as TransportesRouteImport } from './routes/transportes'
 import { Route as SolicitarRouteImport } from './routes/solicitar'
+import { Route as RetiradaRouteImport } from './routes/retirada'
 import { Route as PerfilRouteImport } from './routes/perfil'
 import { Route as MotoristasRouteImport } from './routes/motoristas'
 import { Route as LoginRouteImport } from './routes/login'
@@ -31,6 +32,11 @@ const TransportesRoute = TransportesRouteImport.update({
 const SolicitarRoute = SolicitarRouteImport.update({
   id: '/solicitar',
   path: '/solicitar',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RetiradaRoute = RetiradaRouteImport.update({
+  id: '/retirada',
+  path: '/retirada',
   getParentRoute: () => rootRouteImport,
 } as any)
 const PerfilRoute = PerfilRouteImport.update({
@@ -65,6 +71,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/motoristas': typeof MotoristasRoute
   '/perfil': typeof PerfilRoute
+  '/retirada': typeof RetiradaRoute
   '/solicitar': typeof SolicitarRoute
   '/transportes': typeof TransportesRoute
   '/validacao': typeof ValidacaoRoute
@@ -75,6 +82,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/motoristas': typeof MotoristasRoute
   '/perfil': typeof PerfilRoute
+  '/retirada': typeof RetiradaRoute
   '/solicitar': typeof SolicitarRoute
   '/transportes': typeof TransportesRoute
   '/validacao': typeof ValidacaoRoute
@@ -86,6 +94,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/motoristas': typeof MotoristasRoute
   '/perfil': typeof PerfilRoute
+  '/retirada': typeof RetiradaRoute
   '/solicitar': typeof SolicitarRoute
   '/transportes': typeof TransportesRoute
   '/validacao': typeof ValidacaoRoute
@@ -98,6 +107,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/motoristas'
     | '/perfil'
+    | '/retirada'
     | '/solicitar'
     | '/transportes'
     | '/validacao'
@@ -108,6 +118,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/motoristas'
     | '/perfil'
+    | '/retirada'
     | '/solicitar'
     | '/transportes'
     | '/validacao'
@@ -118,6 +129,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/motoristas'
     | '/perfil'
+    | '/retirada'
     | '/solicitar'
     | '/transportes'
     | '/validacao'
@@ -129,6 +141,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   MotoristasRoute: typeof MotoristasRoute
   PerfilRoute: typeof PerfilRoute
+  RetiradaRoute: typeof RetiradaRoute
   SolicitarRoute: typeof SolicitarRoute
   TransportesRoute: typeof TransportesRoute
   ValidacaoRoute: typeof ValidacaoRoute
@@ -155,6 +168,13 @@ declare module '@tanstack/react-router' {
       path: '/solicitar'
       fullPath: '/solicitar'
       preLoaderRoute: typeof SolicitarRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/retirada': {
+      id: '/retirada'
+      path: '/retirada'
+      fullPath: '/retirada'
+      preLoaderRoute: typeof RetiradaRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/perfil': {
@@ -201,6 +221,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   MotoristasRoute: MotoristasRoute,
   PerfilRoute: PerfilRoute,
+  RetiradaRoute: RetiradaRoute,
   SolicitarRoute: SolicitarRoute,
   TransportesRoute: TransportesRoute,
   ValidacaoRoute: ValidacaoRoute,
